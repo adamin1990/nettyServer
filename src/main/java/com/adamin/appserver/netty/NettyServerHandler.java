@@ -29,6 +29,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
+        System.out.println("读取 = " + ctx + ", msg = " + msg);
       LOGGER.info("-------------服务端读取--------"+msg+"-------"+ctx.channel().id().asLongText());
     }
 
@@ -37,5 +38,17 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
         super.exceptionCaught(ctx, cause);
         LOGGER.error("发生异常:");
         LOGGER.error(cause.getMessage(), cause);
+    }
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        super.channelActive(ctx);
+        System.out.println("连接成功 = " + ctx);
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        super.channelInactive(ctx);
+        System.out.println("连接丢失 = " + ctx);
     }
 }
