@@ -15,7 +15,10 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
+import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +40,8 @@ public class NettyInitialzer  extends ChannelInitializer<SocketChannel> {
         pipeline.addLast(new IdleStateHandler(60,0,0, TimeUnit.MINUTES));
         ByteBuf delimiter = Unpooled.copiedBuffer("$$".getBytes());
         pipeline.addLast(new DelimiterBasedFrameDecoder(4096*100,delimiter));
+        pipeline.addLast(new StringDecoder(CharsetUtil.UTF_8));
+        pipeline.addLast(new StringEncoder(CharsetUtil.UTF_8));
         pipeline.addLast(new NettyServerHandler());
 
     }

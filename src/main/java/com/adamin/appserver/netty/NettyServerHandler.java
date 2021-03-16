@@ -9,29 +9,25 @@
  */
 package com.adamin.appserver.netty;
 
+import com.adamin.appserver.netty.bean.SocketBean;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 
 /**
- *
  * @author adamin
  * @site https://www.lixiaopeng.top
  * @create 2021/3/13 15:38
  */
 @ChannelHandler.Sharable
-@Service
 public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
     private static final Logger LOGGER = LoggerFactory.getLogger(NettyServerHandler.class);
 
-    @Override
-    protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
-        System.out.println("读取 = " + ctx + ", msg = " + msg);
-      LOGGER.info("-------------服务端读取--------"+msg+"-------"+ctx.channel().id().asLongText());
-    }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
@@ -50,5 +46,29 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
         System.out.println("连接丢失 = " + ctx);
+    }
+
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
+        Gson gson = new Gson();
+        String unescapeStr = StringEscapeUtils.unescapeJson(msg);
+        unescapeStr = unescapeStr.substring(1, unescapeStr.length() - 1);
+        LOGGER.info("客户端返回信息：" + unescapeStr);
+        SocketBean socketBean = gson.fromJson(unescapeStr, new TypeToken<SocketBean>() {
+        }.getType());
+        LOGGER.info("设备id：" + socketBean.getSn());
+        switch (socketBean.getCmdType()) {
+            case CmdType.TYPE_AUTH: //注册鉴权
+                break;
+            case CmdType.TYPE_HEART_BEAT:  //心跳
+                break;
+            case CmdType.TYPE_HOOK:  //hook
+                break;
+            case CmdType.TYPE_PROXY: //代理
+                break;
+            default:
+                LOGGER.info("类型错误");
+                break;
+        }
     }
 }

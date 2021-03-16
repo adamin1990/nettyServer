@@ -17,6 +17,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.net.InetSocketAddress;
@@ -30,6 +31,8 @@ import java.net.InetSocketAddress;
 @Component
 public class NettyServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(NettyServer.class);
+    @Value("${tcpServerPort}")
+    private Integer tcpServerPort;
     private static class SingleTonNettyServer {
         static final NettyServer instance=new NettyServer();
     }
@@ -53,15 +56,20 @@ public class NettyServer {
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS,5000)
                 .childOption(ChannelOption.SO_KEEPALIVE,true)
                 .childOption(ChannelOption.TCP_NODELAY,true)
+//                .childOption(ChannelOption.AUTO_READ,true)
                 .childHandler(new NettyInitialzer());
 
     }
 
+    /**
+     * 启动netty
+     * @throws InterruptedException
+     */
     public void start() throws InterruptedException {
-        InetSocketAddress address = new InetSocketAddress("0.0.0.0", 1024);
+        InetSocketAddress address = new InetSocketAddress("0.0.0.0", tcpServerPort);
         future=server.bind(address).sync();
         if (future.isSuccess()) {
-            System.out.println("启动 Netty 成功");
+           LOGGER.info("netty 启动成功，端口"+tcpServerPort);
         }
     }
 }
