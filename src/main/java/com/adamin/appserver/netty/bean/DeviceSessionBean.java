@@ -20,7 +20,6 @@ import java.nio.channels.Channel;
 public class DeviceSessionBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(DeviceSessionBean.class);
     private String sn;
-    private String appName; //hook的应用名称
     private Channel channel=null;
     private long lastHeartBeatTimeStamp;
 
@@ -36,13 +35,6 @@ public class DeviceSessionBean {
         this.sn = sn;
     }
 
-    public String getAppName() {
-        return appName;
-    }
-
-    public void setAppName(String appName) {
-        this.appName = appName;
-    }
 
     public Channel getChannel() {
         return channel;
