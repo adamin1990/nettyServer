@@ -7,6 +7,8 @@
 package com.adamin.appserver.netty;
 
 import com.adamin.appserver.netty.bean.DeviceSessionBean;
+import io.netty.channel.Channel;
+import io.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DeviceGroup {
     private static final Logger LOGGER = LoggerFactory.getLogger(DeviceGroup.class);
-   //app名称
+   //sn
     private Map<String, DeviceSessionBean> devices=new ConcurrentHashMap<>();
 
     private DeviceGroup() {
@@ -31,6 +33,72 @@ public class DeviceGroup {
 
     public static DeviceGroup getInstance(){
         return  instance;
+    }
+
+    /**
+     * 注册设备
+     * @param sn
+     * @param channel
+     */
+    public void register(String sn, Channel channel){
+        if(StringUtil.isNullOrEmpty(sn)){
+           LOGGER.info("请提供注册设备号");
+           return;
+        }
+        if(!channel.isActive()){
+            LOGGER.info("设备"+sn+"channel 离线");
+            return;
+        }
+        if(devices.get(sn)!=null){
+            LOGGER.info("设别"+sn+"已注册");
+            if(channel!=devices.get(sn)){
+                LOGGER.info("channel 不一致,更新channel");
+                devices.get(sn).setChannel(channel);
+            }
+            return;
+        }
+        DeviceSessionBean sessionBean=new DeviceSessionBean();
+        sessionBean.setSn(sn);
+        sessionBean.setChannel(channel);
+        sessionBean.setLastHeartBeatTimeStamp(0);
+        devices.put(sn,sessionBean);
+    }
+
+    /**
+     * 解注册
+     * @param sn
+     */
+    public void unregister(String sn){
+        devices.remove(sn);
+
+    }
+
+    /**
+     * 根据频道解注册
+     * @param channel
+     */
+    public void unregister(Channel channel){
+        if(channel!=null){
+            LOGGER.info("注销频道");
+            devices.forEach((sn, deviceSessionBean) -> {
+                if(deviceSessionBean.getChannel()==channel){
+                    devices.remove(sn);
+                }
+
+            });
+        }
+
+    }
+
+    /**
+     * 设置上次心跳
+     * @param sn
+     * @param time
+     */
+    public void setLastHeartBeat(String sn,long time){
+        if(devices.get(sn)!=null){
+            devices.get(sn).setLastHeartBeatTimeStamp(time);
+        }
     }
 
 }

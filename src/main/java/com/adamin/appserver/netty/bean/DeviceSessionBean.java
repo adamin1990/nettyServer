@@ -6,10 +6,12 @@
  */
 package com.adamin.appserver.netty.bean;
 
+import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.channels.Channel;
+import java.util.concurrent.atomic.AtomicLong;
+
 
 /**
  *
@@ -22,6 +24,7 @@ public class DeviceSessionBean {
     private String sn;
     private Channel channel=null;
     private long lastHeartBeatTimeStamp;
+    private AtomicLong flowId=new AtomicLong(1l);//流水id
 
     public static Logger getLOGGER() {
         return LOGGER;
@@ -50,5 +53,15 @@ public class DeviceSessionBean {
 
     public void setLastHeartBeatTimeStamp(long lastHeartBeatTimeStamp) {
         this.lastHeartBeatTimeStamp = lastHeartBeatTimeStamp;
+    }
+
+
+    public void transfer(String content){
+        long taskId=flowId.incrementAndGet();
+        TaskRecord record=new TaskRecord();
+        record.setSn(sn);
+        record.setInvokeData(content);
+        record.setTaskId(taskId);
+
     }
 }

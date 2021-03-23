@@ -40,12 +40,14 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
         System.out.println("连接成功 = " + ctx);
+//        ctx.channel().close();
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
         System.out.println("连接丢失 = " + ctx);
+        DeviceGroup.getInstance().unregister(ctx.channel());
     }
 
     @Override
@@ -59,6 +61,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
         LOGGER.info("设备id：" + socketBean.getSn());
         switch (socketBean.getCmdType()) {
             case CmdType.TYPE_AUTH: //注册鉴权
+                DeviceGroup.getInstance().register(socketBean.getSn(),ctx.channel());
                 break;
             case CmdType.TYPE_HEART_BEAT:  //心跳
                 break;
