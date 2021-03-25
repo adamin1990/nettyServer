@@ -84,12 +84,18 @@ public class TaskRecord {
      * 唤醒调用线程
      * @param socketBean
      */
-    private void notifyCaller(SocketBean socketBean){
-        synchronized (lock){
-            callbacked=true;
-            lock.notify();
+    public void notifyCaller(SocketBean socketBean){
+        this.socketBean=socketBean;
+        if(taskListener!=null){
+            taskListener.onReceive(socketBean);
+        }else{
+            synchronized (lock){
+                callbacked=true;
+                lock.notify();
 
+            }
         }
+
 
 
     }

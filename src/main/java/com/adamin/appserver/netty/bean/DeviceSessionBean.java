@@ -6,7 +6,9 @@
  */
 package com.adamin.appserver.netty.bean;
 
+import com.adamin.appserver.netty.Constants;
 import io.netty.channel.Channel;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,8 +46,20 @@ public class DeviceSessionBean {
     }
 
     public void setChannel(Channel channel) {
+        if(StringUtils.isEmpty(sn)){
+            LOGGER.info("设备sn是空");
+            try {
+                throw new Exception("请先设置设备sn");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return;
+        }
+        channel.attr(Constants.SN).set(sn);
         this.channel = channel;
     }
+
+
 
     public long getLastHeartBeatTimeStamp() {
         return lastHeartBeatTimeStamp;

@@ -12,10 +12,12 @@ package com.adamin.appserver.netty;
 import com.adamin.appserver.netty.bean.SocketBean;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,6 +68,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
             case CmdType.TYPE_HEART_BEAT:  //心跳
                 break;
             case CmdType.TYPE_HOOK:  //hook
+                handleHookResPonse(socketBean,ctx.channel());
                 break;
             case CmdType.TYPE_PROXY: //代理
                 break;
@@ -73,5 +76,16 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
                 LOGGER.info("类型错误");
                 break;
         }
+    }
+
+    private void handleHookResPonse(SocketBean socketBean, Channel channel) {
+        String sn = channel.attr(Constants.SN).get();
+        LOGGER.info("处理hook数据sn："+sn);
+        if(StringUtils.isEmpty(sn)){
+            LOGGER.info("处理hooksn为空");
+            return;
+        }
+        TaskRepro.getInstance().transferResponse(sn,socketBean.getSerialNumber(),socketBean);
+
     }
 }

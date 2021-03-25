@@ -24,4 +24,6 @@ public class CmdType {
     public static final int TYPE_AUTH=101; //客户端注册鉴权指令
     public static final int   TYPE_HOOK=500; //下发指令，hook数据
     public static final int TYPE_PROXY=501; //下发指令，开启代理
+
+
 }

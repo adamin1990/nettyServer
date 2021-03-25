@@ -8,6 +8,7 @@ package com.adamin.appserver.controller;
 
 import com.adamin.appserver.bean.HttpResponse;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +19,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Map;
 
 /**
  *
@@ -37,8 +39,16 @@ public class SzwlController {
    @RequestMapping(path = "/hook",method = {RequestMethod.GET})
     public void hook(HttpServletRequest request, HttpServletResponse response){
        HttpResponse httpResponse=new HttpResponse();
+       Map<String, String[]> parameterMap = request.getParameterMap();
+       JsonObject jsonObject=new JsonObject();
+       for (Map.Entry<String, String[]> stringEntry : parameterMap.entrySet()) {
+           String[] value = stringEntry.getValue();
+           if (value == null || value.length == 0) {
+               continue;
+           }
 
-
+//           jsonObject.add(stringEntry.getKey(), );
+       }
        response.setContentType(request.getMethod());
        LOGGER.info("------content -----------"+response.getContentType());
        ServletOutputStream outputStream=null;
