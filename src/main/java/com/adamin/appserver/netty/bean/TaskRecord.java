@@ -18,7 +18,7 @@ public class TaskRecord {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskRecord.class);
     private String sn;
     private long taskId;
-    private String invokeData;
+    private Object invokeData;
     private SocketBean socketBean;
     private TaskListener taskListener;
     private Object lock=new Object();
@@ -44,11 +44,11 @@ public class TaskRecord {
         this.taskId = taskId;
     }
 
-    public String getInvokeData() {
+    public Object getInvokeData() {
         return invokeData;
     }
 
-    public void setInvokeData(String invokeData) {
+    public void setInvokeData(Object invokeData) {
         this.invokeData = invokeData;
     }
 
@@ -98,6 +98,13 @@ public class TaskRecord {
 
 
 
+    }
+
+    public SocketBean getResult(){
+        if(!callbacked){
+            return  null;
+        }
+        return  socketBean;
     }
 
 

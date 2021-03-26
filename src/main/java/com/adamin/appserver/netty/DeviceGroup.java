@@ -12,6 +12,7 @@ import io.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,6 +26,7 @@ public class DeviceGroup {
     private static final Logger LOGGER = LoggerFactory.getLogger(DeviceGroup.class);
    //sn
     private Map<String, DeviceSessionBean> devices=new ConcurrentHashMap<>();
+    private LinkedList<String> poolQueue=new LinkedList<>();
 
     private DeviceGroup() {
     }
@@ -40,7 +42,7 @@ public class DeviceGroup {
      * @param sn
      * @param channel
      */
-    public void register(String sn, Channel channel){
+    public synchronized void register(String sn, Channel channel){
         if(StringUtil.isNullOrEmpty(sn)){
            LOGGER.info("请提供注册设备号");
            return;
@@ -62,6 +64,8 @@ public class DeviceGroup {
         sessionBean.setChannel(channel);
         sessionBean.setLastHeartBeatTimeStamp(0);
         devices.put(sn,sessionBean);
+        removeQueue(sn);
+         poolQueue.add(sn);
     }
 
     /**
@@ -70,6 +74,7 @@ public class DeviceGroup {
      */
     public void unregister(String sn){
         devices.remove(sn);
+        removeQueue(sn);
 
     }
 
@@ -83,6 +88,7 @@ public class DeviceGroup {
             devices.forEach((sn, deviceSessionBean) -> {
                 if(deviceSessionBean.getChannel()==channel){
                     devices.remove(sn);
+                    removeQueue(sn);
                 }
 
             });
@@ -98,6 +104,49 @@ public class DeviceGroup {
     public void setLastHeartBeat(String sn,long time){
         if(devices.get(sn)!=null){
             devices.get(sn).setLastHeartBeatTimeStamp(time);
+        }
+    }
+
+    /**
+     * 根据设备号查看sn
+     * @param sn
+     * @return
+     */
+    public DeviceSessionBean queryBySn(String sn){
+        return devices.get(sn);
+    }
+
+    private void removeQueue(String sn) {
+        while (poolQueue.remove(sn)) {
+        }
+    }
+
+    /**
+     * 抽取设备
+     * @return
+     */
+    public synchronized DeviceSessionBean pollDevice(){
+        while (true) {
+            String sn = poolQueue.poll();
+            if (sn == null) {
+                LOGGER.info("设备抽取失败:{}", sn);
+                return null;
+            }
+
+            DeviceSessionBean deviceSessionBean = devices.get(sn);
+            if (deviceSessionBean == null) {
+                continue;
+            }
+            if (deviceSessionBean.getChannel() == null) {
+                devices.remove(sn);
+                continue;
+            }
+            if (!deviceSessionBean.getChannel().isActive()) {
+                devices.remove(sn);
+                continue;
+            }
+            poolQueue.add(sn);
+            return deviceSessionBean;
         }
     }
 

@@ -7,18 +7,23 @@
 package com.adamin.appserver.controller;
 
 import com.adamin.appserver.bean.HttpResponse;
+import com.adamin.appserver.netty.DeviceGroup;
+import com.adamin.appserver.netty.bean.DeviceSessionBean;
+import com.adamin.appserver.util.ResPonseUtil;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -30,6 +35,8 @@ import java.util.Map;
 @RestController
 public class SzwlController {
     private static final Logger LOGGER = LoggerFactory.getLogger(SzwlController.class);
+    @Autowired
+    private ResPonseUtil resPonseUtil;
 
     /**
      * 调用远程app服务获取数据，请求数据必须携带参数 appname app名称
@@ -46,37 +53,34 @@ public class SzwlController {
            if (value == null || value.length == 0) {
                continue;
            }
-
-//           jsonObject.add(stringEntry.getKey(), );
+           jsonObject.add(stringEntry.getKey(), new JsonPrimitive(value[0]));
        }
-       response.setContentType(request.getMethod());
-       LOGGER.info("------content -----------"+response.getContentType());
-       ServletOutputStream outputStream=null;
-       try {
-         outputStream = response.getOutputStream();
-          httpResponse.setCode(1);
-          httpResponse.setData("adam");
-          httpResponse.setMessage("this is message");
-         outputStream.write(new Gson().toJson(httpResponse).getBytes());
-
-       } catch (IOException e) {
-           e.printStackTrace();
-           httpResponse.setCode(0);
-           httpResponse.setData("adam");
-           httpResponse.setMessage(e.getMessage());
-           try {
-               outputStream.write(new Gson().toJson(httpResponse).getBytes());
-           } catch (IOException ioException) {
-               ioException.printStackTrace();
+       JsonElement snElement = jsonObject.get("sn");
+//       if(snElement==null){
+//        commonResponseToClient(response,0,"请提供设备sn","");
+//        return;
+//
+//       }
+       DeviceSessionBean deviceSession;
+       if(snElement!=null&&!StringUtils.isEmpty(snElement.getAsString())){  //指定了设备号，就从map中找到该设备执行任务
+           deviceSession= DeviceGroup.getInstance().queryBySn(snElement.getAsString());
+           if(deviceSession==null||!deviceSession.getChannel().isActive()){
+               resPonseUtil.commonResponseToClient(response,0,"设备未注册或长链接已断开","");
+               return;
            }
-       }finally {
-           try {
-               outputStream.close();
-           } catch (IOException e) {
-               e.printStackTrace();
+
+       }else{ //未指定设备号，则从map中拉一个出来执行任务
+           deviceSession = DeviceGroup.getInstance().pollDevice();
+           if(deviceSession==null){
+               resPonseUtil.commonResponseToClient(response,0,"没有找到在线设备哦","");
+               return;
+           }else{
+               LOGGER.info("获取设备信息：{}",new Gson().toJson(jsonObject));
+               deviceSession.transfer(jsonObject,response);
            }
 
        }
 
     }
+
 }

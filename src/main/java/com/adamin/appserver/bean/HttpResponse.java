@@ -6,6 +6,8 @@
  */
 package com.adamin.appserver.bean;
 
+import com.google.gson.annotations.Expose;
+
 /**
  *
  * @author adamin
@@ -13,31 +15,34 @@ package com.adamin.appserver.bean;
  * @create 2021/3/18 17:55
  */
 public class HttpResponse {
-    private int code;
-    private String data;
-    private String message;
+    @Expose
+    private int status;
+    @Expose
+    private Object dataReturn;
+    @Expose
+    private String msg;
 
-    public int getCode() {
-        return code;
+    public int getStatus() {
+        return status;
     }
 
-    public void setCode(int code) {
-        this.code = code;
+    public void setStatus(int status) {
+        this.status = status;
     }
 
-    public String getData() {
-        return data;
+    public Object getDataReturn() {
+        return dataReturn;
     }
 
-    public void setData(String data) {
-        this.data = data;
+    public void setDataReturn(Object dataReturn) {
+        this.dataReturn = dataReturn;
     }
 
-    public String getMessage() {
-        return message;
+    public String getMsg() {
+        return msg;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setMsg(String msg) {
+        this.msg = msg;
     }
 }

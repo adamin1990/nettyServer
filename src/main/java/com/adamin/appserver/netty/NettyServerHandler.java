@@ -56,7 +56,10 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
     protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
         Gson gson = new Gson();
         String unescapeStr = StringEscapeUtils.unescapeJson(msg);
-        unescapeStr = unescapeStr.substring(1, unescapeStr.length() - 1);
+        if(unescapeStr.startsWith("\"")){
+            unescapeStr = unescapeStr.substring(1, unescapeStr.length() - 1);
+
+        }
         LOGGER.info("客户端返回信息：" + unescapeStr);
         SocketBean socketBean = gson.fromJson(unescapeStr, new TypeToken<SocketBean>() {
         }.getType());
